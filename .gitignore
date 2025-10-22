@@ -13,3 +13,6 @@ instance/
 # OS
 .DS_Store
 Thumbs.db
+
+# Data File
+comments.json
