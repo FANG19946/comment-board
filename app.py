@@ -6,14 +6,27 @@ from flask import Flask, render_template, request, redirect, url_for
 
 DATA_FILE = "data/comments.json"
 
+
+# Time Limit of Comments
+TTL_SECONDS = 60 * 2  # 2 minutes for demo
+
 def load_comments():
     if not os.path.exists(DATA_FILE):
         return []
+
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            comments = json.load(f)
     except json.JSONDecodeError:
-        return []
+        comments = []
+
+    # Filter expired comments
+    now = time.time()
+    comments = [c for c in comments if now - c["timestamp"] < TTL_SECONDS]
+    save_comments(comments)
+
+    return comments
+
 
 
 def save_comments(comments):
@@ -29,14 +42,22 @@ app = Flask(__name__)
 def inject_time():
     """Make `time` available in Jinja templates."""
     import time
-    return dict(time=time)
+    return dict(time=time, TTL_SECONDS=TTL_SECONDS)
 
 
 # Setting up the routes
-@app.route("/", methods=["GET", "POST"])
-def index():
+@app.route("/")
+def home():
+    comments = load_comments()
+    comments = sorted(comments, key=lambda x: x["timestamp"], reverse=True)
+    return render_template("home.html", comments=comments, TTL_SECONDS=TTL_SECONDS, active_page='home')
+
+
+# 📝 Post page - add comment
+@app.route("/post", methods=["GET", "POST"])
+def post():
     if request.method == "POST":
-        name = request.form.get("name", "Anonymous")
+        name = request.form.get("name", "Anonymous").strip()
         text = request.form.get("text", "").strip()
         if text:
             comments = load_comments()
@@ -46,16 +67,10 @@ def index():
                 "timestamp": time.time()
             })
             save_comments(comments)
-        return redirect(url_for("index"))
+        return redirect(url_for("home"))
 
-    comments = load_comments()
-    # Show newest comments first
-    comments = sorted(comments, key=lambda x: x["timestamp"], reverse=True)
-    return render_template("index.html", comments=comments)
-
+    return render_template("post.html", active_page='post')
 
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-

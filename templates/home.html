@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-3xl font-bold mb-6 text-white">Recent Comments</h2>
+
+<a href="{{ url_for('post') }}" 
+   class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-6 inline-block">
+   📝 Add a Comment
+</a>
+
+{% if comments %}
+  <div class="grid gap-4">
+    {% for c in comments %}
+      <div class="bg-gray-800 p-4 rounded-lg shadow hover:shadow-lg transition">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-semibold text-blue-400">{{ c.name }}</span>
+          <span class="text-sm text-gray-400">{{ time.strftime('%H:%M:%S', time.localtime(c.timestamp)) }}</span>
+        </div>
+        <p class="text-gray-200">{{ c.text }}</p>
+        <p class="text-xs text-gray-400 mt-2" 
+           data-timestamp="{{ c.timestamp }}" 
+           data-ttl="{{ TTL_SECONDS }}">
+           Expires in <span class="ttl-count">0</span>s
+        </p>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-gray-400">No comments yet. Be the first to post one!</p>
+{% endif %}
+
+<script>
+function updateTTL() {
+  document.querySelectorAll('.ttl-count').forEach(el => {
+    const timestamp = parseFloat(el.parentElement.dataset.timestamp);
+    const ttl = parseFloat(el.parentElement.dataset.ttl);
+    const now = Math.floor(Date.now() / 1000);
+    let remaining = Math.max(0, Math.floor(ttl - (now - timestamp)));
+    el.textContent = remaining;
+  });
+}
+// update every second
+setInterval(updateTTL, 1000);
+updateTTL(); // initial call
+</script>
+{% endblock %}

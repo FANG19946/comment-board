@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-3xl font-bold mb-6 text-white">Add a Comment</h2>
+
+<form method="POST" class="bg-gray-800 p-6 rounded-lg shadow-md space-y-4 max-w-lg mx-auto">
+  <div>
+    <label class="block text-gray-300 font-medium mb-1">Name</label>
+    <input type="text" name="name" placeholder="Your name" 
+           class="w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+  </div>
+
+  <div>
+    <label class="block text-gray-300 font-medium mb-1">Message</label>
+    <textarea name="text" placeholder="Write something..." rows="4"
+              class="w-full bg-gray-700 border-gray-600 rounded-lg p-2 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+  </div>
+
+  <button type="submit" 
+          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+    Post Comment
+  </button>
+</form>
+{% endblock %}
