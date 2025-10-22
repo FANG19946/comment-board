@@ -20,6 +20,11 @@ def load_comments():
     except json.JSONDecodeError:
         comments = []
 
+    for c in comments:
+        if "likes" not in c:
+            c["likes"] = 0
+
+
     # Filter expired comments
     now = time.time()
     comments = [c for c in comments if now - c["timestamp"] < TTL_SECONDS]
@@ -49,7 +54,7 @@ def inject_time():
 @app.route("/")
 def home():
     comments = load_comments()
-    comments = sorted(comments, key=lambda x: x["timestamp"], reverse=True)
+    comments = sorted(comments, key=lambda x: (-x["likes"], -x["timestamp"]))
     return render_template("home.html", comments=comments, TTL_SECONDS=TTL_SECONDS, active_page='home')
 
 
@@ -70,6 +75,19 @@ def post():
         return redirect(url_for("home"))
 
     return render_template("post.html", active_page='post')
+
+
+# Adding Likes
+from flask import jsonify
+
+@app.route("/like/<int:comment_index>", methods=["POST"])
+def like(comment_index):
+    comments = load_comments()
+    if 0 <= comment_index < len(comments):
+        comments[comment_index]["likes"] += 1
+        save_comments(comments)
+        return jsonify({"likes": comments[comment_index]["likes"]})
+    return jsonify({"error": "Invalid index"}), 400
 
 
 if __name__ == "__main__":
